@@ -43,4 +43,19 @@ defmodule UnfurlTest do
 
     assert is_list(Map.get(og, "audio"))
   end
+
+  test "extracts Twitter data", %{bypass: bypass, url: url} do
+    Bypass.expect_once(bypass, &respond_with_freakshow_episode/1)
+
+    {:ok, result} = unfurl(url)
+
+    twitter = get_in(result, [:providers, :twitter])
+
+    assert is_map(twitter)
+
+    assert Map.get(twitter, "card") == "summary"
+
+    assert Map.get(twitter, "image") ==
+             "https://meta.metaebene.me/media/mm/freakshow-logo-1.0.jpg"
+  end
 end

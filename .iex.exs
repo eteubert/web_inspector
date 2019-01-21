@@ -27,5 +27,3 @@ IEx.configure(
     |> IO.ANSI.format()
     |> IO.chardata_to_string()
 )
-
-import Ecto.Query, warn: false

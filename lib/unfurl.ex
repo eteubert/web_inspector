@@ -3,17 +3,19 @@ defmodule Unfurl do
   Documentation for Unfurl.
   """
 
-  alias Unfurl.Parser.OpenGraph
+  alias Unfurl.Parser.{OpenGraph, Twitter}
 
   def unfurl(url) do
     {:ok, response} = HTTPoison.get(url)
     %HTTPoison.Response{status_code: 200, headers: _headers, body: html} = response
 
     open_graph = OpenGraph.parse(html)
+    twitter = Twitter.parse(html)
 
     result =
       %{providers: %{}}
       |> put_in([:providers, :open_graph], open_graph)
+      |> put_in([:providers, :twitter], twitter)
       |> Map.put(:title, Map.get(open_graph, "title"))
 
     {:ok, result}
