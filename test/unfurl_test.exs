@@ -58,4 +58,14 @@ defmodule UnfurlTest do
     assert Map.get(twitter, "image") ==
              "https://meta.metaebene.me/media/mm/freakshow-logo-1.0.jpg"
   end
+
+  @tag external: true
+  test "redirects are followed" do
+    url = "https://t.co/VbTTH3ltoQ"
+
+    {:ok, result} = unfurl(url)
+
+    assert result.site_name == "Nomad List"
+    assert result.url == "https://nomadlist.com/"
+  end
 end
