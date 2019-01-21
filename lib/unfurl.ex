@@ -5,6 +5,7 @@ defmodule Unfurl do
 
   alias Unfurl.Parser.{OpenGraph, Twitter}
 
+  @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
     unfurl(url, [])
   end
@@ -25,6 +26,7 @@ defmodule Unfurl do
     end
   end
 
+  @spec location_header(list()) :: binary() | nil
   defp location_header([{"location", location} | _]), do: location
   defp location_header([{"Location", location} | _]), do: location
   defp location_header([_ | headers]), do: location_header(headers)
