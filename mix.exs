@@ -23,7 +23,8 @@ defmodule Unfurl.MixProject do
     [
       {:httpoison, "~> 1.5"},
       {:jason, "~> 1.1"},
-      {:floki, "~> 0.20.4"}
+      {:floki, "~> 0.20.4"},
+      {:bypass, "~> 1.0", only: :test}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
