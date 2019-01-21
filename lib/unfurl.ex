@@ -32,7 +32,7 @@ defmodule Unfurl do
   defp location_header([_ | headers]), do: location_header(headers)
   defp location_header([]), do: nil
 
-  def parse(url, html, opts) do
+  defp parse(url, html, opts) do
     tasks = [
       Task.async(OpenGraph, :parse, [html]),
       Task.async(Twitter, :parse, [html])
