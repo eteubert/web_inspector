@@ -27,4 +27,20 @@ defmodule UnfurlTest do
 
     assert result.title == "FS229 Telefonischturm"
   end
+
+  test "extracts open graph data", %{bypass: bypass, url: url} do
+    Bypass.expect_once(bypass, &respond_with_freakshow_episode/1)
+
+    {:ok, result} = unfurl(url)
+
+    og = get_in(result, [:providers, :open_graph])
+
+    assert is_map(og)
+    assert Map.get(og, "type") == "website"
+    assert Map.get(og, "site_name") == "Freak Show"
+    assert Map.get(og, "url") == "https://freakshow.fm/fs229-telefonischturm"
+    assert Map.get(og, "image") == "https://meta.metaebene.me/media/mm/freakshow-logo-1.0.jpg"
+
+    assert is_list(Map.get(og, "audio"))
+  end
 end
