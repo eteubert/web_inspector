@@ -22,7 +22,7 @@ defmodule Unfurl do
         unfurl(location_header(headers), [url | visited_locations])
 
       _ ->
-        raise "Unhandled URL Response"
+        {:error, :unhandled_url_response}
     end
   end
 
