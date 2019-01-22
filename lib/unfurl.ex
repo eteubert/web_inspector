@@ -60,7 +60,7 @@ defmodule Unfurl do
          opts
        ) do
     icon =
-      case Map.get(misc, :icons) do
+      case Map.get(misc, "icons") do
         [icon | _tail] -> icon
         _ -> nil
       end
