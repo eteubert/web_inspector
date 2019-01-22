@@ -3,7 +3,7 @@ defmodule Unfurl do
   Documentation for Unfurl.
   """
 
-  alias Unfurl.Parser.{OpenGraph, Twitter}
+  alias Unfurl.Parser.{Misc, OpenGraph, Twitter}
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
@@ -35,16 +35,19 @@ defmodule Unfurl do
   defp parse(url, html, opts) do
     tasks = [
       Task.async(OpenGraph, :parse, [html]),
-      Task.async(Twitter, :parse, [html])
+      Task.async(Twitter, :parse, [html]),
+      Task.async(Misc, :parse, [html])
     ]
 
-    with [open_graph, twitter] <- Task.yield_many(tasks),
+    with [open_graph, twitter, misc] <- Task.yield_many(tasks),
          {_, {:ok, open_graph}} <- open_graph,
-         {_, {:ok, twitter}} <- twitter do
+         {_, {:ok, twitter}} <- twitter,
+         {_, {:ok, misc}} <- misc do
       result =
         %{providers: %{}}
         |> put_in([:providers, :open_graph], open_graph)
         |> put_in([:providers, :twitter], twitter)
+        |> put_in([:providers, :misc], misc)
         |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
         |> Map.put(:url, Map.get(open_graph, "url") || Map.get(twitter, "url") || url)
         |> Map.put(:original_url, hd(Map.get(opts, :locations)))

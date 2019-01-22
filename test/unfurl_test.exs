@@ -59,6 +59,31 @@ defmodule UnfurlTest do
              "https://meta.metaebene.me/media/mm/freakshow-logo-1.0.jpg"
   end
 
+  test "extracts misc data", %{bypass: bypass, url: url} do
+    Bypass.expect_once(bypass, &respond_with_freakshow_episode/1)
+
+    {:ok, result} = unfurl(url)
+
+    misc = get_in(result, [:providers, :misc])
+    assert is_map(misc)
+
+    assert Map.get(misc, "icons") == [
+             %{
+               type: "icon",
+               width: "32",
+               height: "32",
+               url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
+             },
+             %{
+               type: "icon",
+               width: "192",
+               height: "192",
+               url:
+                 "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-192x192.jpg"
+             }
+           ]
+  end
+
   @tag external: true
   test "redirects are followed" do
     url = "https://t.co/VbTTH3ltoQ"
