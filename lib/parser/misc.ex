@@ -6,11 +6,13 @@ defmodule Unfurl.Parser.Misc do
 
     iex> Unfurl.Parser.Misc.parse(~S(
     ...>  <title>Foo<title>
+    ...>  <link rel="canonical" href="https://example.com" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg" sizes="32x32" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg" />
     ...> ))
     %{
       "title" => "Foo",
+      "canonical_url" => "https://example.com",
       "icons" =>
         [
           %{
@@ -31,7 +33,14 @@ defmodule Unfurl.Parser.Misc do
     title =
       Floki.find(html, "title")
       |> case do
-        [title | _] -> Floki.text(title)
+        [node | _] -> Floki.text(node)
+        _ -> nil
+      end
+
+    canonical_url =
+      Floki.find(html, "link[rel=canonical]")
+      |> case do
+        [node | _] -> hd(Floki.attribute(node, "href"))
         _ -> nil
       end
 
@@ -43,6 +52,7 @@ defmodule Unfurl.Parser.Misc do
 
     %{
       "title" => title,
+      "canonical_url" => canonical_url,
       "icons" => icons
     }
   end

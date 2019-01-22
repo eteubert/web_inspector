@@ -68,6 +68,7 @@ defmodule UnfurlTest do
     assert is_map(misc)
 
     assert Map.get(misc, "title") == "FS229 Telefonischturm | Freak Show"
+    assert Map.get(misc, "canonical_url") == "https://freakshow.fm/fs229-telefonischturm"
 
     assert Map.get(misc, "icons") == [
              %{
