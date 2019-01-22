@@ -67,6 +67,8 @@ defmodule UnfurlTest do
     misc = get_in(result, [:providers, :misc])
     assert is_map(misc)
 
+    assert Map.get(misc, "title") == "FS229 Telefonischturm | Freak Show"
+
     assert Map.get(misc, "icons") == [
              %{
                type: "icon",

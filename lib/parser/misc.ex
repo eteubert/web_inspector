@@ -5,26 +5,36 @@ defmodule Unfurl.Parser.Misc do
   ## Example
 
     iex> Unfurl.Parser.Misc.parse(~S(
+    ...>  <title>Foo<title>
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg" sizes="32x32" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg" />
     ...> ))
-    %{"icons" =>
-      [
-        %{
-          type: "icon",
-          width: "32",
-          height: "32",
-          url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
-        },
-        %{
-          type: "icon",
-          url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg"
-        }
-      ]
+    %{
+      "title" => "Foo",
+      "icons" =>
+        [
+          %{
+            type: "icon",
+            width: "32",
+            height: "32",
+            url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
+          },
+          %{
+            type: "icon",
+            url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg"
+          }
+        ]
     }
   """
   @spec parse(binary()) :: map()
   def parse(html) when is_binary(html) do
+    title =
+      Floki.find(html, "title")
+      |> case do
+        [title | _] -> Floki.text(title)
+        _ -> nil
+      end
+
     icons =
       Floki.find(html, "link[rel]")
       |> List.wrap()
@@ -32,6 +42,7 @@ defmodule Unfurl.Parser.Misc do
       |> aggregate_icons()
 
     %{
+      "title" => title,
       "icons" => icons
     }
   end
