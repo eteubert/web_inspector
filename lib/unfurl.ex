@@ -48,17 +48,33 @@ defmodule Unfurl do
         |> put_in([:providers, :open_graph], open_graph)
         |> put_in([:providers, :twitter], twitter)
         |> put_in([:providers, :misc], misc)
-        |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
-        |> Map.put(:url, Map.get(open_graph, "url") || Map.get(twitter, "url") || url)
-        |> Map.put(:original_url, hd(Map.get(opts, :locations)))
-        |> Map.put(
-          :description,
-          Map.get(open_graph, "description") || Map.get(twitter, "description")
-        )
-        |> Map.put(:site_name, Map.get(open_graph, "site_name"))
-        |> Map.put(:locations, Map.get(opts, :locations))
+        |> generate_porcelain(url, opts)
 
       {:ok, result}
     end
+  end
+
+  defp generate_porcelain(
+         data = %{providers: %{open_graph: open_graph, twitter: twitter, misc: misc}},
+         url,
+         opts
+       ) do
+    icon =
+      case Map.get(misc, :icons) do
+        [icon | _tail] -> icon
+        _ -> nil
+      end
+
+    data
+    |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
+    |> Map.put(:url, Map.get(open_graph, "url") || Map.get(twitter, "url") || url)
+    |> Map.put(:original_url, hd(Map.get(opts, :locations)))
+    |> Map.put(
+      :description,
+      Map.get(open_graph, "description") || Map.get(twitter, "description")
+    )
+    |> Map.put(:site_name, Map.get(open_graph, "site_name"))
+    |> Map.put(:locations, Map.get(opts, :locations))
+    |> Map.put(:icon, icon)
   end
 end
