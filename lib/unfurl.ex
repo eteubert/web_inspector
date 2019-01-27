@@ -75,8 +75,10 @@ defmodule Unfurl do
         Map.get(twitter, "url") ||
         url
 
+    title = Map.get(open_graph, "title") || Map.get(twitter, "title") || Map.get(misc, "title")
+
     data
-    |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
+    |> Map.put(:title, title)
     |> Map.put(
       :url,
       canonical_url
