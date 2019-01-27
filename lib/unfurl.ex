@@ -70,13 +70,16 @@ defmodule Unfurl do
         _ -> nil
       end
 
+    canonical_url =
+      Map.get(misc, "canonical_url") || Map.get(oembed, "url") || Map.get(open_graph, "url") ||
+        Map.get(twitter, "url") ||
+        url
+
     data
     |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
     |> Map.put(
       :url,
-      Map.get(misc, "canonical_url") || Map.get(oembed, "url") || Map.get(open_graph, "url") ||
-        Map.get(twitter, "url") ||
-        url
+      canonical_url
     )
     |> Map.put(:original_url, hd(Map.get(opts, :locations)))
     |> Map.put(
@@ -88,9 +91,17 @@ defmodule Unfurl do
       Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") ||
         Map.get(oembed, "author_name")
     )
-    |> Map.put(:site_url, Map.get(oembed, "provider_url") || Map.get(oembed, "author_url"))
+    |> Map.put(
+      :site_url,
+      Map.get(oembed, "provider_url") || Map.get(oembed, "author_url") ||
+        short_domain(canonical_url)
+    )
     |> Map.put(:embed, Map.get(oembed, "html"))
     |> Map.put(:locations, Map.get(opts, :locations))
     |> Map.put(:icon, icon)
+  end
+
+  def short_domain(url) do
+    URI.parse(url).host |> String.replace("www.", "")
   end
 end
