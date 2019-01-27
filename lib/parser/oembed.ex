@@ -15,7 +15,6 @@ defmodule WebInspector.Parser.OEmbed do
     end)
     |> Task.yield_many()
     |> Enum.reduce(nil, fn
-      _, acc when not is_nil(acc) -> acc
       {_task, {:ok, {:ok, {:ok, oembed}}}}, _acc -> oembed
       _, _ -> nil
     end)
