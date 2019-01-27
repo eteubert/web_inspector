@@ -3,7 +3,7 @@ defmodule Unfurl do
   Documentation for Unfurl.
   """
 
-  alias Unfurl.Parser.{Misc, OpenGraph, Twitter}
+  alias Unfurl.Parser.{Misc, OEmbed, OpenGraph, Twitter}
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
@@ -36,18 +36,21 @@ defmodule Unfurl do
     tasks = [
       Task.async(OpenGraph, :parse, [html]),
       Task.async(Twitter, :parse, [html]),
-      Task.async(Misc, :parse, [html])
+      Task.async(Misc, :parse, [html]),
+      Task.async(OEmbed, :parse, [html])
     ]
 
-    with [open_graph, twitter, misc] <- Task.yield_many(tasks),
+    with [open_graph, twitter, misc, oembed] <- Task.yield_many(tasks),
          {_, {:ok, open_graph}} <- open_graph,
          {_, {:ok, twitter}} <- twitter,
-         {_, {:ok, misc}} <- misc do
+         {_, {:ok, misc}} <- misc,
+         {_, {:ok, oembed}} <- oembed do
       result =
         %{providers: %{}}
         |> put_in([:providers, :open_graph], open_graph)
         |> put_in([:providers, :twitter], twitter)
         |> put_in([:providers, :misc], misc)
+        |> put_in([:providers, :oembed], oembed)
         |> generate_porcelain(url, opts)
 
       {:ok, result}
@@ -55,7 +58,9 @@ defmodule Unfurl do
   end
 
   defp generate_porcelain(
-         data = %{providers: %{open_graph: open_graph, twitter: twitter, misc: misc}},
+         data = %{
+           providers: %{open_graph: open_graph, twitter: twitter, misc: misc, oembed: oembed}
+         },
          url,
          opts
        ) do
@@ -69,7 +74,8 @@ defmodule Unfurl do
     |> Map.put(:title, Map.get(open_graph, "title") || Map.get(twitter, "title"))
     |> Map.put(
       :url,
-      Map.get(misc, "canonical_url") || Map.get(open_graph, "url") || Map.get(twitter, "url") ||
+      Map.get(misc, "canonical_url") || Map.get(oembed, "url") || Map.get(open_graph, "url") ||
+        Map.get(twitter, "url") ||
         url
     )
     |> Map.put(:original_url, hd(Map.get(opts, :locations)))
@@ -77,7 +83,13 @@ defmodule Unfurl do
       :description,
       Map.get(open_graph, "description") || Map.get(twitter, "description")
     )
-    |> Map.put(:site_name, Map.get(open_graph, "site_name"))
+    |> Map.put(
+      :site_name,
+      Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") ||
+        Map.get(oembed, "author_name")
+    )
+    |> Map.put(:site_url, Map.get(oembed, "provider_url") || Map.get(oembed, "author_url"))
+    |> Map.put(:embed, Map.get(oembed, "html"))
     |> Map.put(:locations, Map.get(opts, :locations))
     |> Map.put(:icon, icon)
   end
