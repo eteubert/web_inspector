@@ -10,13 +10,19 @@ defmodule Unfurl.Parser.OEmbed do
     Floki.find(html, "link[type=\"application/json+oembed\"]")
     |> List.wrap()
     |> Enum.map(fn node -> with [href] <- Floki.attribute(node, "href"), do: href end)
-    |> Enum.map(fn url -> Task.async(fn -> fetch(url) end) end)
+    |> Enum.map(fn url ->
+      Task.async(fn -> fetch(url) end)
+    end)
     |> Task.yield_many()
     |> Enum.reduce(nil, fn
       _, acc when not is_nil(acc) -> acc
       {_task, {:ok, {:ok, {:ok, oembed}}}}, _acc -> oembed
       _, _ -> nil
     end)
+    |> case do
+      oembed when is_map(oembed) -> oembed
+      _ -> %{}
+    end
   end
 
   defp fetch(url) do

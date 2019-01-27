@@ -29,6 +29,8 @@ defmodule Unfurl.Parser.Twitter do
         Map.update(agg, property, content, fn existing ->
           [content | List.wrap(existing)]
         end)
+      else
+        _ -> agg
       end
     end)
   end
