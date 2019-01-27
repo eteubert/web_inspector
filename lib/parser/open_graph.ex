@@ -1,10 +1,10 @@
-defmodule Unfurl.Parser.OpenGraph do
+defmodule WebInspector.Parser.OpenGraph do
   @doc """
   Parse Open Graph elements from HTML.
 
   ## Example
 
-    iex> Unfurl.Parser.OpenGraph.parse(~S(
+    iex> WebInspector.Parser.OpenGraph.parse(~S(
     ...>  <meta property="og:type" content="website" />
     ...>  <meta property="og:site_name" content="Freak Show" />
     ...> ))

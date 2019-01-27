@@ -1,9 +1,9 @@
-defmodule Unfurl do
+defmodule WebInspector do
   @moduledoc """
-  Documentation for Unfurl.
+  Documentation for WebInspector.
   """
 
-  alias Unfurl.Parser.{Misc, OEmbed, OpenGraph, Twitter}
+  alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter}
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do

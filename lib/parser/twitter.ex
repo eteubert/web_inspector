@@ -1,10 +1,10 @@
-defmodule Unfurl.Parser.Twitter do
+defmodule WebInspector.Parser.Twitter do
   @doc """
   Parse Twitter elements from HTML.
 
   ## Example
 
-    iex> Unfurl.Parser.Twitter.parse(~S(
+    iex> WebInspector.Parser.Twitter.parse(~S(
     ...>  <meta name="twitter:card" content="summary" />
     ...>  <meta name="twitter:url" content="https://freakshow.fm/fs229-telefonischturm" />
     ...> ))

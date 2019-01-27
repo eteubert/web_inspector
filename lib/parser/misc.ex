@@ -1,10 +1,10 @@
-defmodule Unfurl.Parser.Misc do
+defmodule WebInspector.Parser.Misc do
   @doc """
   Parse miscellaneous elements from HTML.
 
   ## Example
 
-    iex> Unfurl.Parser.Misc.parse(~S(
+    iex> WebInspector.Parser.Misc.parse(~S(
     ...>  <title>Foo<title>
     ...>  <link rel="canonical" href="https://example.com" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg" sizes="32x32" />

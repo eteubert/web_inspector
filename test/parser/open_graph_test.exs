@@ -1,4 +1,4 @@
 defmodule OpenGraphTest do
   use ExUnit.Case
-  doctest Unfurl.Parser.OpenGraph
+  doctest WebInspector.Parser.OpenGraph
 end

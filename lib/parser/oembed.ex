@@ -1,4 +1,4 @@
-defmodule Unfurl.Parser.OEmbed do
+defmodule WebInspector.Parser.OEmbed do
   @doc """
   Detect and parse oEmbed data.
 

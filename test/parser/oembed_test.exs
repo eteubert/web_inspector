@@ -1,6 +1,6 @@
 defmodule OEmbedTest do
   use ExUnit.Case
-  doctest Unfurl.Parser.OEmbed
+  doctest WebInspector.Parser.OEmbed
 
   setup do
     bypass = Bypass.open()
@@ -23,7 +23,7 @@ defmodule OEmbedTest do
 
     icon = ~s(<link rel="alternate" type="application/json+oembed" href="#{url}">)
 
-    result = Unfurl.Parser.OEmbed.parse(icon)
+    result = WebInspector.Parser.OEmbed.parse(icon)
 
     assert is_map(result)
     assert Map.get(result, "author_name") == "Eric Teubert"

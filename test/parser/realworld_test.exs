@@ -1,8 +1,8 @@
 defmodule RealworldTest do
   use ExUnit.Case
-  # doctest Unfurl
+  # doctest WebInspector
 
-  import Unfurl, only: [unfurl: 1]
+  import WebInspector, only: [unfurl: 1]
 
   setup do
     bypass = Bypass.open()
