@@ -27,3 +27,8 @@ IEx.configure(
     |> IO.ANSI.format()
     |> IO.chardata_to_string()
 )
+
+defmodule H do
+  def ok({:ok, value}), do: value
+  def ok(value), do: value
+end
