@@ -89,6 +89,7 @@ defmodule Unfurl.Parser.Misc do
       Floki.attribute(node, "rel")
       |> case do
         ["icon"] -> true
+        ["apple-touch-icon"] -> true
         _ -> false
       end
     end)
