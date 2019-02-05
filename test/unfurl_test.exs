@@ -1,6 +1,6 @@
 defmodule WebInspectorTest do
   use ExUnit.Case
-  # doctest WebInspector
+  doctest WebInspector
 
   import WebInspector, only: [unfurl: 1]
 

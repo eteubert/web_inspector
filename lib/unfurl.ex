@@ -91,12 +91,12 @@ defmodule WebInspector do
     |> Map.put(
       :site_name,
       Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") ||
-        Map.get(oembed, "author_name")
+        Map.get(oembed, "author_name") || short_domain(url)
     )
     |> Map.put(
       :site_url,
       Map.get(oembed, "provider_url") || Map.get(oembed, "author_url") ||
-        short_domain(canonical_url)
+        fallback_site_url(canonical_url)
     )
     |> Map.put(:embed, Map.get(oembed, "html"))
     |> Map.put(:locations, Map.get(opts, :locations))
@@ -105,5 +105,16 @@ defmodule WebInspector do
 
   def short_domain(url) do
     URI.parse(url).host |> String.replace("www.", "")
+  end
+
+  @doc """
+  Extract site URL from url.
+
+      iex> WebInspector.fallback_site_url("https://www.amazon.de/acme")
+      "https://www.amazon.de"
+  """
+  def fallback_site_url(url) do
+    u = URI.parse(url)
+    u.scheme <> "://" <> u.host
   end
 end
