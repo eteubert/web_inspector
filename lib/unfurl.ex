@@ -64,16 +64,23 @@ defmodule WebInspector do
          url,
          opts
        ) do
-    icon =
-      case Map.get(misc, "icons") do
-        [icon | _tail] -> icon
-        _ -> nil
-      end
-
     canonical_url =
       Map.get(misc, "canonical_url") || Map.get(oembed, "url") || Map.get(open_graph, "url") ||
         Map.get(twitter, "url") ||
         url
+
+    site_url =
+      Map.get(oembed, "provider_url") || Map.get(oembed, "author_url") ||
+        fallback_site_url(canonical_url)
+
+    icon =
+      case Map.get(misc, "icons") do
+        [icon | _tail] ->
+          %{icon | url: ensure_absolute_url(icon.url, site_url)}
+
+        _ ->
+          nil
+      end
 
     title = Map.get(open_graph, "title") || Map.get(twitter, "title") || Map.get(misc, "title")
 
@@ -95,8 +102,7 @@ defmodule WebInspector do
     )
     |> Map.put(
       :site_url,
-      Map.get(oembed, "provider_url") || Map.get(oembed, "author_url") ||
-        fallback_site_url(canonical_url)
+      site_url
     )
     |> Map.put(:embed, Map.get(oembed, "html"))
     |> Map.put(:locations, Map.get(opts, :locations))
@@ -116,5 +122,20 @@ defmodule WebInspector do
   def fallback_site_url(url) do
     u = URI.parse(url)
     u.scheme <> "://" <> u.host
+  end
+
+  def ensure_absolute_url(icon_url, site_url) do
+    icon = URI.parse(icon_url)
+    site = URI.parse(site_url)
+
+    case icon.host do
+      nil ->
+        site
+        |> Map.put(:path, icon_url)
+        |> URI.to_string()
+
+      _ ->
+        icon_url
+    end
   end
 end
