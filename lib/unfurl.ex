@@ -3,6 +3,8 @@ defmodule WebInspector do
   Documentation for WebInspector.
   """
 
+  require Logger
+
   alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter}
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
@@ -18,10 +20,14 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
         unfurl(location_header(headers), [url | visited_locations])
 
+      {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
+        unfurl(location_header(headers), [url | visited_locations])
+
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
         unfurl(location_header(headers), [url | visited_locations])
 
-      _ ->
+      other ->
+        Logger.error(inspect(other))
         {:error, :unhandled_url_response}
     end
   end
