@@ -26,6 +26,12 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
         unfurl(location_header(headers), [url | visited_locations])
 
+      {:ok, %HTTPoison.Response{status_code: 403}} ->
+        {:error, :forbidden}
+
+      {:ok, %HTTPoison.Response{status_code: 404}} ->
+        {:error, :not_found}
+
       other ->
         Logger.error(inspect(other))
         {:error, :unhandled_url_response}
@@ -60,6 +66,8 @@ defmodule WebInspector do
         |> generate_porcelain(url, opts)
 
       {:ok, result}
+    else
+      {:error, :parsing_failed}
     end
   end
 
