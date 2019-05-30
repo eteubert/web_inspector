@@ -52,7 +52,8 @@ defmodule WebInspector do
       Task.async(OEmbed, :parse, [html])
     ]
 
-    with [open_graph, twitter, misc, oembed] <- Task.yield_many(tasks),
+    # todo: after timeout, collect completed values; shutdown and discard others
+    with [open_graph, twitter, misc, oembed] <- Task.yield_many(tasks, 30_000),
          {_, {:ok, open_graph}} <- open_graph,
          {_, {:ok, twitter}} <- twitter,
          {_, {:ok, misc}} <- misc,
