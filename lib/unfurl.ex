@@ -67,7 +67,7 @@ defmodule WebInspector do
 
       {:ok, result}
     else
-      {:error, :parsing_failed}
+      _ -> {:error, :parsing_failed}
     end
   end
 
@@ -85,7 +85,8 @@ defmodule WebInspector do
 
     site_url =
       Map.get(oembed, "provider_url") || Map.get(oembed, "author_url") ||
-        fallback_site_url(canonical_url)
+        fallback_site_url(canonical_url) || fallback_site_url(Map.get(open_graph, "url")) ||
+        fallback_site_url(url)
 
     icon =
       case Map.get(misc, "icons") do
@@ -135,7 +136,12 @@ defmodule WebInspector do
   """
   def fallback_site_url(url) do
     u = URI.parse(url)
-    u.scheme <> "://" <> u.host
+
+    if is_binary(u.scheme) && is_binary(u.host) do
+      u.scheme <> "://" <> u.host
+    else
+      nil
+    end
   end
 
   def ensure_absolute_url(icon_url, site_url) do
