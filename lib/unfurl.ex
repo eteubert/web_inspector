@@ -13,16 +13,34 @@ defmodule WebInspector do
   end
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
-    case HTTPoison.get(url) do
+    headers = []
+    options = []
+
+    case HTTPoison.get(url, headers, options) do
       {:ok, %HTTPoison.Response{status_code: 200, body: html}} ->
         parse(url, html, %{locations: Enum.reverse([url | visited_locations])})
 
+      # HTTP 301 Moved Permanently
       {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
         unfurl(location_header(headers), [url | visited_locations])
 
+      # HTTP 302 Found
       {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-        unfurl(location_header(headers), [url | visited_locations])
+        location = location_header(headers)
 
+        # if location has no scheme, it's relative and I need to build the fully qualified URI
+        next_url =
+          location
+          |> URI.parse()
+          |> Map.get(:scheme)
+          |> case do
+            nil -> URI.parse(url) |> Map.put(:path, location) |> URI.to_string()
+            url -> url
+          end
+
+        unfurl(next_url, [url | visited_locations])
+
+      # HTTP 307 Temporary Redirect
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
         unfurl(location_header(headers), [url | visited_locations])
 
