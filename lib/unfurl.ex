@@ -14,7 +14,10 @@ defmodule WebInspector do
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
     headers = []
-    options = []
+
+    options = [
+      ssl: [{:versions, [:"tlsv1.2"]}]
+    ]
 
     case HTTPoison.get(url, headers, options) do
       {:ok, %HTTPoison.Response{status_code: 200, body: html}} ->
@@ -69,7 +72,7 @@ defmodule WebInspector do
           |> Map.put(:port, request_uri.port)
           |> URI.to_string()
 
-        url ->
+        _url ->
           location
       end
 
