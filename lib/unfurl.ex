@@ -38,6 +38,10 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         {:error, :not_found}
 
+      {:error, %HTTPoison.Error{reason: {:tls_alert, tls_alert}}} ->
+        Logger.error(inspect(tls_alert))
+        {:error, :tls_alert}
+
       other ->
         Logger.error(inspect(other))
         {:error, :unhandled_url_response}
