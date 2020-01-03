@@ -22,27 +22,15 @@ defmodule WebInspector do
 
       # HTTP 301 Moved Permanently
       {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
-        unfurl(location_header(headers), [url | visited_locations])
+        unfurl(next_url(url, headers), [url | visited_locations])
 
       # HTTP 302 Found
       {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-        location = location_header(headers)
-
-        # if location has no scheme, it's relative and I need to build the fully qualified URI
-        next_url =
-          location
-          |> URI.parse()
-          |> Map.get(:scheme)
-          |> case do
-            nil -> URI.parse(url) |> Map.put(:path, location) |> URI.to_string()
-            url -> url
-          end
-
-        unfurl(next_url, [url | visited_locations])
+        unfurl(next_url(url, headers), [url | visited_locations])
 
       # HTTP 307 Temporary Redirect
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
-        unfurl(location_header(headers), [url | visited_locations])
+        unfurl(next_url(url, headers), [url | visited_locations])
 
       {:ok, %HTTPoison.Response{status_code: 403}} ->
         {:error, :forbidden}
@@ -54,6 +42,34 @@ defmodule WebInspector do
         Logger.error(inspect(other))
         {:error, :unhandled_url_response}
     end
+  end
+
+  # determine next url to request based on location header
+  # - follow location header if it is a fully qualified URL
+  # - if location header is relative, build fully qualified URL
+  defp next_url(request_url, headers) do
+    location = location_header(headers)
+
+    next =
+      location
+      |> URI.parse()
+      |> Map.get(:scheme)
+      |> case do
+        nil ->
+          request_uri = URI.parse(request_url)
+
+          URI.parse(location)
+          |> Map.put(:authority, request_uri.authority)
+          |> Map.put(:host, request_uri.host)
+          |> Map.put(:scheme, request_uri.scheme)
+          |> Map.put(:port, request_uri.port)
+          |> URI.to_string()
+
+        url ->
+          location
+      end
+
+    next
   end
 
   @spec location_header(list()) :: binary() | nil
