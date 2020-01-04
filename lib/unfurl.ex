@@ -132,7 +132,7 @@ defmodule WebInspector do
 
     icon =
       case Map.get(misc, "icons") do
-        [icon | _tail] ->
+        [icon | _tail] when is_map(icon) ->
           %{icon | url: ensure_absolute_url(icon.url, site_url)}
 
         _ ->

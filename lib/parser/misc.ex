@@ -49,6 +49,7 @@ defmodule WebInspector.Parser.Misc do
       |> List.wrap()
       |> filter_icons()
       |> aggregate_icons()
+      |> Enum.filter(&is_map/1)
 
     %{
       "title" => title,
@@ -62,6 +63,8 @@ defmodule WebInspector.Parser.Misc do
     |> Enum.map(fn node ->
       with [href] <- Floki.attribute(node, "href") do
         build_icon(href, Floki.attribute(node, "sizes"))
+      else
+        _ -> nil
       end
     end)
   end
