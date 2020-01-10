@@ -55,28 +55,30 @@ defmodule WebInspector do
   # - follow location header if it is a fully qualified URL
   # - if location header is relative, build fully qualified URL
   defp next_url(request_url, headers) do
-    location = location_header(headers)
+    headers
+    |> location_header()
+    |> ensure_absolute_url(request_url)
+  end
 
-    next =
-      location
-      |> URI.parse()
-      |> Map.get(:scheme)
-      |> case do
-        nil ->
-          request_uri = URI.parse(request_url)
+  def ensure_absolute_url(url, site_url) do
+    url
+    |> URI.parse()
+    |> Map.get(:scheme)
+    |> case do
+      nil -> make_absolute_url(url, site_url)
+      _url -> url
+    end
+  end
 
-          URI.parse(location)
-          |> Map.put(:authority, request_uri.authority)
-          |> Map.put(:host, request_uri.host)
-          |> Map.put(:scheme, request_uri.scheme)
-          |> Map.put(:port, request_uri.port)
-          |> URI.to_string()
+  defp make_absolute_url(url, site_url) do
+    site_url = URI.parse(site_url)
 
-        _url ->
-          location
-      end
-
-    next
+    URI.parse(url)
+    |> Map.put(:authority, site_url.authority)
+    |> Map.put(:host, site_url.host)
+    |> Map.put(:scheme, site_url.scheme)
+    |> Map.put(:port, site_url.port)
+    |> URI.to_string()
   end
 
   @spec location_header(list()) :: binary() | nil
@@ -186,18 +188,18 @@ defmodule WebInspector do
     end
   end
 
-  def ensure_absolute_url(icon_url, site_url) do
-    icon = URI.parse(icon_url)
-    site = URI.parse(site_url)
-
-    case icon.host do
-      nil ->
-        site
-        |> Map.put(:path, icon_url)
-        |> URI.to_string()
-
-      _ ->
-        icon_url
-    end
-  end
+  # def ensure_absolute_url(icon_url, site_url) do
+  #   icon = URI.parse(icon_url)
+  #   site = URI.parse(site_url)
+  #
+  #   case icon.host do
+  #     nil ->
+  #       site
+  #       |> Map.put(:path, icon_url)
+  #       |> URI.to_string()
+  #
+  #     _ ->
+  #       icon_url
+  #   end
+  # end
 end
