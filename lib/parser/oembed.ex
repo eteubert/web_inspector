@@ -5,8 +5,8 @@ defmodule WebInspector.Parser.OEmbed do
   Finds all "application/json+oembed" links, fetches them all and returns
   the first valid result.
   """
-  @spec parse(binary()) :: map()
-  def parse(html) when is_binary(html) do
+  @spec parse(binary(), binary()) :: map()
+  def parse(html, _url) when is_binary(html) do
     Floki.find(html, "link[type=\"application/json+oembed\"]")
     |> List.wrap()
     |> Enum.map(fn node -> with [href] <- Floki.attribute(node, "href"), do: href end)

@@ -75,18 +75,18 @@ defmodule WebInspectorTest do
                type: "icon",
                width: "32",
                height: "32",
-               url: "/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
+               url: "#{url}/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
              },
              %{
                type: "icon",
                width: "192",
                height: "192",
-               url: "/files/2013/07/cropped-freakshow-logo-600x600-192x192.jpg"
+               url: "#{url}/files/2013/07/cropped-freakshow-logo-600x600-192x192.jpg"
              }
            ]
 
     assert get_in(result, [:icon, :url]) ==
-             "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
+             "#{url}/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg"
   end
 
   @tag external: true

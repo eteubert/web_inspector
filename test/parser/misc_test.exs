@@ -2,11 +2,13 @@ defmodule MiscTest do
   use ExUnit.Case
   doctest WebInspector.Parser.Misc
 
+  @url "https://example.com"
+
   test "finds apple touch icons" do
     icon =
       ~S(<link rel="apple-touch-icon" href="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" sizes="192x192">)
 
-    result = WebInspector.Parser.Misc.parse(icon)
+    result = WebInspector.Parser.Misc.parse(icon, @url)
     icons = Map.get(result, "icons")
 
     assert is_list(icons)

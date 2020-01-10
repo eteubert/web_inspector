@@ -7,14 +7,14 @@ defmodule WebInspector.Parser.Twitter do
     iex> WebInspector.Parser.Twitter.parse(~S(
     ...>  <meta name="twitter:card" content="summary" />
     ...>  <meta name="twitter:url" content="https://freakshow.fm/fs229-telefonischturm" />
-    ...> ))
+    ...> ), "https://example.com")
     %{
       "card" => "summary",
       "url" => "https://freakshow.fm/fs229-telefonischturm"
     }
   """
-  @spec parse(binary()) :: map()
-  def parse(html) when is_binary(html) do
+  @spec parse(binary(), binary()) :: map()
+  def parse(html, _url) when is_binary(html) do
     Floki.find(html, "meta[name]")
     |> List.wrap()
     |> filter()

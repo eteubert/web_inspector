@@ -1,4 +1,6 @@
 defmodule WebInspector.Parser.Misc do
+  alias WebInspector.WebHelper
+
   @doc """
   Parse miscellaneous elements from HTML.
 
@@ -9,7 +11,7 @@ defmodule WebInspector.Parser.Misc do
     ...>  <link rel="canonical" href="https://example.com" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg" sizes="32x32" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg" />
-    ...> ))
+    ...> ), "https://example.com")
     %{
       "title" => "Foo",
       "canonical_url" => "https://example.com",
@@ -28,8 +30,8 @@ defmodule WebInspector.Parser.Misc do
         ]
     }
   """
-  @spec parse(binary()) :: map()
-  def parse(html) when is_binary(html) do
+  @spec parse(binary(), binary()) :: map()
+  def parse(html, site_url) when is_binary(html) do
     title =
       Floki.find(html, "title")
       |> case do
@@ -40,7 +42,7 @@ defmodule WebInspector.Parser.Misc do
     canonical_url =
       Floki.find(html, "link[rel=canonical]")
       |> case do
-        [node | _] -> hd(Floki.attribute(node, "href"))
+        [node | _] -> hd(Floki.attribute(node, "href")) |> WebHelper.ensure_absolute_url(site_url)
         _ -> nil
       end
 
@@ -48,7 +50,7 @@ defmodule WebInspector.Parser.Misc do
       Floki.find(html, "link[rel]")
       |> List.wrap()
       |> filter_icons()
-      |> aggregate_icons()
+      |> aggregate_icons(site_url)
       |> Enum.filter(&is_map/1)
 
     %{
@@ -58,11 +60,11 @@ defmodule WebInspector.Parser.Misc do
     }
   end
 
-  defp aggregate_icons(nodes) when is_list(nodes) do
+  defp aggregate_icons(nodes, site_url) when is_list(nodes) do
     nodes
     |> Enum.map(fn node ->
       with [href] <- Floki.attribute(node, "href") do
-        build_icon(href, Floki.attribute(node, "sizes"))
+        build_icon(WebHelper.ensure_absolute_url(href, site_url), Floki.attribute(node, "sizes"))
       else
         _ -> nil
       end

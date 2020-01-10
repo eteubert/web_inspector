@@ -6,6 +6,7 @@ defmodule WebInspector do
   require Logger
 
   alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter}
+  alias WebInspector.WebHelper
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
@@ -57,28 +58,7 @@ defmodule WebInspector do
   defp next_url(request_url, headers) do
     headers
     |> location_header()
-    |> ensure_absolute_url(request_url)
-  end
-
-  def ensure_absolute_url(url, site_url) do
-    url
-    |> URI.parse()
-    |> Map.get(:scheme)
-    |> case do
-      nil -> make_absolute_url(url, site_url)
-      _url -> url
-    end
-  end
-
-  defp make_absolute_url(url, site_url) do
-    site_url = URI.parse(site_url)
-
-    URI.parse(url)
-    |> Map.put(:authority, site_url.authority)
-    |> Map.put(:host, site_url.host)
-    |> Map.put(:scheme, site_url.scheme)
-    |> Map.put(:port, site_url.port)
-    |> URI.to_string()
+    |> WebHelper.ensure_absolute_url(request_url)
   end
 
   @spec location_header(list()) :: binary() | nil
@@ -89,10 +69,10 @@ defmodule WebInspector do
 
   defp parse(url, html, opts) do
     tasks = [
-      Task.async(OpenGraph, :parse, [html]),
-      Task.async(Twitter, :parse, [html]),
-      Task.async(Misc, :parse, [html]),
-      Task.async(OEmbed, :parse, [html])
+      Task.async(OpenGraph, :parse, [html, url]),
+      Task.async(Twitter, :parse, [html, url]),
+      Task.async(Misc, :parse, [html, url]),
+      Task.async(OEmbed, :parse, [html, url])
     ]
 
     # todo: after timeout, collect completed values; shutdown and discard others
@@ -135,7 +115,7 @@ defmodule WebInspector do
     icon =
       case Map.get(misc, "icons") do
         [icon | _tail] when is_map(icon) ->
-          %{icon | url: ensure_absolute_url(icon.url, site_url)}
+          %{icon | url: WebHelper.ensure_absolute_url(icon.url, site_url)}
 
         _ ->
           nil
@@ -187,19 +167,4 @@ defmodule WebInspector do
       nil
     end
   end
-
-  # def ensure_absolute_url(icon_url, site_url) do
-  #   icon = URI.parse(icon_url)
-  #   site = URI.parse(site_url)
-  #
-  #   case icon.host do
-  #     nil ->
-  #       site
-  #       |> Map.put(:path, icon_url)
-  #       |> URI.to_string()
-  #
-  #     _ ->
-  #       icon_url
-  #   end
-  # end
 end
