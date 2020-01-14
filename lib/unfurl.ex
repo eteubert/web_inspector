@@ -26,7 +26,9 @@ defmodule WebInspector do
     ]
 
     case HTTPoison.get(url, headers, options) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: html}} ->
+      {:ok, %HTTPoison.Response{status_code: 200, body: html, headers: headers}} ->
+        compression = find_header(headers, "content-encoding")
+        html = decompress_body(compression, html)
         parse(url, html, %{locations: Enum.reverse([url | visited_locations])})
 
       # HTTP 301 Moved Permanently
@@ -78,6 +80,28 @@ defmodule WebInspector do
   defp location_header([{"Location", location} | _]), do: location
   defp location_header([_ | headers]), do: location_header(headers)
   defp location_header([]), do: nil
+
+  defp find_header(headers, header_name) do
+    Enum.find_value(
+      headers,
+      fn {name, value} ->
+        name =~ ~r/#{header_name}/i && String.downcase(value)
+      end
+    )
+  end
+
+  defp decompress_body(nil, body), do: body
+  defp decompress_body("identity", body), do: body
+  defp decompress_body("gzip", <<31, 139, 8, _::binary>> = body), do: :zlib.gunzip(body)
+  defp decompress_body("gzip", body), do: body
+  defp decompress_body("x-gzip", <<31, 139, 8, _::binary>> = body), do: :zlib.gunzip(body)
+  defp decompress_body("x-gzip", body), do: body
+  defp decompress_body("deflate", body), do: :zlib.unzip(body)
+
+  defp decompress_body(other, body) do
+    Logger.error("No support for decompression of body using '#{other}' algorithm.")
+    body
+  end
 
   defp parse(url, html, opts) do
     tasks = [
