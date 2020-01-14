@@ -32,6 +32,10 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
         unfurl(next_url(url, headers), [url | visited_locations])
 
+      # HTTP 303 See Other
+      {:ok, %HTTPoison.Response{status_code: 303, headers: headers}} ->
+        unfurl(next_url(url, headers), [url | visited_locations])
+
       # HTTP 307 Temporary Redirect
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
         unfurl(next_url(url, headers), [url | visited_locations])
