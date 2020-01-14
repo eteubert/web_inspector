@@ -3,6 +3,9 @@ defmodule WebInspector do
   Documentation for WebInspector.
   """
 
+  # pretend to be a Firefox but add Unfurl component for semi-good citizenship
+  @user_agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:73.0) Gecko/20100101 Firefox/73.0 Unfurl/1.0"
+
   require Logger
 
   alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter}
@@ -14,7 +17,9 @@ defmodule WebInspector do
   end
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
-    headers = []
+    headers = [
+      {"User-agent", @user_agent}
+    ]
 
     options = [
       ssl: [{:versions, [:"tlsv1.2"]}]
