@@ -42,6 +42,9 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         {:error, :not_found}
 
+      {:ok, %HTTPoison.Response{status_code: 429}} ->
+        {:error, :http_429_too_many_requests}
+
       {:error, %HTTPoison.Error{reason: {:tls_alert, tls_alert}}} ->
         Logger.error(inspect(tls_alert))
         {:error, :tls_alert}
