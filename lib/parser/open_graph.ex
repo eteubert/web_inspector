@@ -7,6 +7,7 @@ defmodule WebInspector.Parser.OpenGraph do
     iex> WebInspector.Parser.OpenGraph.parse(~S(
     ...>  <meta property="og:type" content="website" />
     ...>  <meta property="og:site_name" content="Freak Show" />
+    ...>  <meta property="og:site_name" content="Freak Show 2" />
     ...> ), "https://example.com")
     %{
       "type" => "website",
@@ -27,7 +28,11 @@ defmodule WebInspector.Parser.OpenGraph do
       with [content] <- Floki.attribute(node, "content"),
            [<<"og:", property::binary>>] <- Floki.attribute(node, "property") do
         Map.update(agg, property, content, fn existing ->
-          [content | List.wrap(existing)]
+          # [content | List.wrap(existing)]
+          # ignore properties with more than one occurrence
+          # if there are cases where multiple keys are allowed/wanted, a whitelist for these fields
+          # should be made and those fields should then always return lists
+          existing
         end)
       end
     end)
