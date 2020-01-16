@@ -47,8 +47,12 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
         unfurl(next_url(url, headers), [url | visited_locations])
 
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        {:error, :forbidden}
+      {:ok, %HTTPoison.Response{status_code: 403, body: body}} ->
+        if String.contains?(body, "cf-captcha-container") do
+          {:error, :forbidden_cloudflare_captcha}
+        else
+          {:error, :forbidden}
+        end
 
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         {:error, :not_found}
@@ -172,8 +176,7 @@ defmodule WebInspector do
     )
     |> Map.put(
       :site_name,
-      Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") ||
-        Map.get(oembed, "author_name") || short_domain(url)
+      Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") || short_domain(url)
     )
     |> Map.put(
       :site_url,

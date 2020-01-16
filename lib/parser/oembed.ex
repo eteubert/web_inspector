@@ -15,8 +15,18 @@ defmodule WebInspector.Parser.OEmbed do
     end)
     |> Task.yield_many()
     |> Enum.reduce(nil, fn
-      {_task, {:ok, {:ok, {:ok, oembed}}}}, _acc -> oembed
-      _, _ -> nil
+      {_task, {:ok, {:ok, {:ok, oembed}}}}, _acc ->
+        oembed
+        # filter out items with empty values
+        |> Enum.filter(fn
+          {_k, v} when is_binary(v) -> v |> String.trim() |> String.length() > 0
+          _ -> true
+        end)
+        |> Enum.into(%{})
+        |> IO.inspect()
+
+      _, _ ->
+        nil
     end)
     |> case do
       oembed when is_map(oembed) -> oembed
