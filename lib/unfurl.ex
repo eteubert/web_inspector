@@ -28,6 +28,8 @@ defmodule WebInspector do
     case HTTPoison.get(url, headers, options) do
       {:ok, %HTTPoison.Response{status_code: 200, body: html, headers: headers}} ->
         compression = find_header(headers, "content-encoding")
+        # contentType = find_header(headers, "content-type")
+        # Logger.debug("contentType: " <> contentType)
         html = decompress_body(compression, html)
         parse(url, html, %{locations: Enum.reverse([url | visited_locations])})
 

@@ -1,4 +1,6 @@
 defmodule WebInspector.Parser.Twitter do
+  require Logger
+
   @doc """
   Parse Twitter elements from HTML.
 
@@ -15,10 +17,18 @@ defmodule WebInspector.Parser.Twitter do
   """
   @spec parse(binary(), binary()) :: map()
   def parse(html, _url) when is_binary(html) do
-    Floki.find(html, "meta[name]")
-    |> List.wrap()
-    |> filter()
-    |> aggregate()
+    Floki.parse_document(html)
+    |> case do
+      {:ok, document} ->
+        Floki.find(document, "meta[name]")
+        |> List.wrap()
+        |> filter()
+        |> aggregate()
+
+      other ->
+        Logger.debug(other)
+        %{}
+    end
   end
 
   defp aggregate(nodes) when is_list(nodes) do

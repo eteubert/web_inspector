@@ -1,6 +1,8 @@
 defmodule WebInspector.Parser.Misc do
   alias WebInspector.WebHelper
 
+  require Logger
+
   @doc """
   Parse miscellaneous elements from HTML.
 
@@ -32,22 +34,37 @@ defmodule WebInspector.Parser.Misc do
   """
   @spec parse(binary(), binary()) :: map()
   def parse(html, site_url) when is_binary(html) do
+    Floki.parse_document(html)
+    |> case do
+      {:ok, document} ->
+        _parse(document, site_url)
+
+      other ->
+        Logger.debug(other)
+        %{}
+    end
+  end
+
+  defp _parse(document, site_url) do
     title =
-      Floki.find(html, "title")
+      Floki.find(document, "title")
       |> case do
         [node | _] -> Floki.text(node)
         _ -> nil
       end
 
     canonical_url =
-      Floki.find(html, "link[rel=canonical]")
+      Floki.find(document, "link[rel=canonical]")
       |> case do
-        [node | _] -> hd(Floki.attribute(node, "href")) |> WebHelper.ensure_absolute_url(site_url)
-        _ -> nil
+        [node | _] ->
+          hd(Floki.attribute(node, "href")) |> WebHelper.ensure_absolute_url(site_url)
+
+        _ ->
+          nil
       end
 
     icons =
-      Floki.find(html, "link[rel]")
+      Floki.find(document, "link[rel]")
       |> List.wrap()
       |> filter_icons()
       |> aggregate_icons(site_url)

@@ -1,4 +1,6 @@
 defmodule WebInspector.Parser.OpenGraph do
+  require Logger
+
   @doc """
   Parse Open Graph elements from HTML.
 
@@ -16,7 +18,19 @@ defmodule WebInspector.Parser.OpenGraph do
   """
   @spec parse(binary(), binary()) :: map()
   def parse(html, _url) when is_binary(html) do
-    Floki.find(html, "meta[property]")
+    Floki.parse_document(html)
+    |> case do
+      {:ok, document} ->
+        _parse(document)
+
+      other ->
+        Logger.debug(other)
+        %{}
+    end
+  end
+
+  defp _parse(document) do
+    Floki.find(document, "meta[property]")
     |> List.wrap()
     |> filter()
     |> aggregate()

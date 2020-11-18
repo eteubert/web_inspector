@@ -40,8 +40,6 @@ defmodule WebInspectorTest do
     assert Map.get(og, "site_name") == "Freak Show"
     assert Map.get(og, "url") == "https://freakshow.fm/fs229-telefonischturm"
     assert Map.get(og, "image") == "https://meta.metaebene.me/media/mm/freakshow-logo-1.0.jpg"
-
-    assert is_list(Map.get(og, "audio"))
   end
 
   test "extracts Twitter data", %{bypass: bypass, url: url} do

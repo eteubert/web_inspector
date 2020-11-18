@@ -1,4 +1,6 @@
 defmodule WebInspector.Parser.OEmbed do
+  require Logger
+
   @doc """
   Detect and parse oEmbed data.
 
@@ -7,7 +9,19 @@ defmodule WebInspector.Parser.OEmbed do
   """
   @spec parse(binary(), binary()) :: map()
   def parse(html, _url) when is_binary(html) do
-    Floki.find(html, "link[type=\"application/json+oembed\"]")
+    Floki.parse_document(html)
+    |> case do
+      {:ok, document} ->
+        _parse(document)
+
+      other ->
+        Logger.debug(other)
+        %{}
+    end
+  end
+
+  defp _parse(document) do
+    Floki.find(document, "link[type=\"application/json+oembed\"]")
     |> List.wrap()
     |> Enum.map(fn node -> with [href] <- Floki.attribute(node, "href"), do: href end)
     |> Enum.map(fn url ->
@@ -23,7 +37,6 @@ defmodule WebInspector.Parser.OEmbed do
           _ -> true
         end)
         |> Enum.into(%{})
-        |> IO.inspect()
 
       _, _ ->
         nil
