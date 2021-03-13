@@ -8,7 +8,7 @@ defmodule WebInspector do
 
   require Logger
 
-  alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter}
+  alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter, Puppeteer}
   alias WebInspector.WebHelper
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
@@ -110,7 +110,10 @@ defmodule WebInspector do
   end
 
   defp parse(url, html, opts) do
+    original_url = hd(Map.get(opts, :locations))
+
     tasks = [
+      Task.async(Puppeteer, :fetch_and_parse, [original_url]),
       Task.async(OpenGraph, :parse, [html, url]),
       Task.async(Twitter, :parse, [html, url]),
       Task.async(Misc, :parse, [html, url]),
@@ -118,7 +121,8 @@ defmodule WebInspector do
     ]
 
     # todo: after timeout, collect completed values; shutdown and discard others
-    with [open_graph, twitter, misc, oembed] <- Task.yield_many(tasks, 30_000),
+    with [puppeteer, open_graph, twitter, misc, oembed] <- Task.yield_many(tasks, 30_000),
+         {_, {:ok, puppeteer}} <- puppeteer,
          {_, {:ok, open_graph}} <- open_graph,
          {_, {:ok, twitter}} <- twitter,
          {_, {:ok, misc}} <- misc,
@@ -129,6 +133,7 @@ defmodule WebInspector do
         |> put_in([:providers, :twitter], twitter)
         |> put_in([:providers, :misc], misc)
         |> put_in([:providers, :oembed], oembed)
+        |> put_in([:providers, :puppeteer], puppeteer)
         |> generate_porcelain(url, opts)
 
       {:ok, result}
@@ -139,13 +144,20 @@ defmodule WebInspector do
 
   defp generate_porcelain(
          data = %{
-           providers: %{open_graph: open_graph, twitter: twitter, misc: misc, oembed: oembed}
+           providers: %{
+             open_graph: open_graph,
+             twitter: twitter,
+             misc: misc,
+             oembed: oembed,
+             puppeteer: puppeteer
+           }
          },
          url,
          opts
        ) do
     canonical_url =
-      Map.get(misc, "canonical_url") || Map.get(oembed, "url") || Map.get(open_graph, "url") ||
+      Map.get(puppeteer, "url") || Map.get(misc, "canonical_url") || Map.get(oembed, "url") ||
+        Map.get(open_graph, "url") ||
         Map.get(twitter, "url") ||
         url
 
@@ -163,7 +175,9 @@ defmodule WebInspector do
           nil
       end
 
-    title = Map.get(open_graph, "title") || Map.get(twitter, "title") || Map.get(misc, "title")
+    title =
+      Map.get(puppeteer, "title") || Map.get(open_graph, "title") || Map.get(twitter, "title") ||
+        Map.get(misc, "title")
 
     data
     |> Map.put(:title, title)
@@ -174,11 +188,13 @@ defmodule WebInspector do
     |> Map.put(:original_url, hd(Map.get(opts, :locations)))
     |> Map.put(
       :description,
-      Map.get(open_graph, "description") || Map.get(twitter, "description")
+      Map.get(puppeteer, "description") || Map.get(open_graph, "description") ||
+        Map.get(twitter, "description")
     )
     |> Map.put(
       :site_name,
-      Map.get(oembed, "provider_name") || Map.get(open_graph, "site_name") || short_domain(url)
+      Map.get(puppeteer, "site_name") || Map.get(oembed, "provider_name") ||
+        Map.get(open_graph, "site_name") || short_domain(url)
     )
     |> Map.put(
       :site_url,
