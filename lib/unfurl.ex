@@ -179,6 +179,9 @@ defmodule WebInspector do
       Map.get(puppeteer, "title") || Map.get(open_graph, "title") || Map.get(twitter, "title") ||
         Map.get(misc, "title")
 
+    image =
+      Map.get(puppeteer, "image") || Map.get(open_graph, "image") || Map.get(twitter, "image:src")
+
     data
     |> Map.put(:title, title)
     |> Map.put(
@@ -203,6 +206,7 @@ defmodule WebInspector do
     |> Map.put(:embed, Map.get(oembed, "html"))
     |> Map.put(:locations, Map.get(opts, :locations))
     |> Map.put(:icon, icon)
+    |> Map.put(:image, image)
   end
 
   def short_domain(url) do
