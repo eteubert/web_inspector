@@ -180,7 +180,9 @@ defmodule WebInspector do
         Map.get(misc, "title")
 
     image =
-      Map.get(puppeteer, "image") || Map.get(open_graph, "image") || Map.get(twitter, "image:src")
+      (Map.get(puppeteer, "image") || Map.get(open_graph, "image") ||
+         Map.get(twitter, "image:src"))
+      |> WebHelper.ensure_absolute_url(site_url)
 
     data
     |> Map.put(:title, title)

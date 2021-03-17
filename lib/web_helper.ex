@@ -1,5 +1,5 @@
 defmodule WebInspector.WebHelper do
-  def ensure_absolute_url(url, site_url) do
+  def ensure_absolute_url(url, site_url) when is_binary(url) do
     url
     |> URI.parse()
     |> Map.get(:scheme)
@@ -8,6 +8,8 @@ defmodule WebInspector.WebHelper do
       _url -> url
     end
   end
+
+  def ensure_absolute_url(url, _), do: url
 
   defp make_absolute_url(url, site_url) do
     site_url = URI.parse(site_url)
