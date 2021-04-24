@@ -13,7 +13,9 @@ defmodule WebInspector do
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
-    unfurl(url, [])
+    with {:ok, sanitized_url} <- sanitize_url(url) do
+      unfurl(sanitized_url, [])
+    end
   end
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
@@ -229,5 +231,37 @@ defmodule WebInspector do
     else
       nil
     end
+  end
+
+  @doc """
+  Sanitize url
+
+  ## Examples
+
+      iex> WebInspector.sanitize_url("http://example.com")
+      {:ok, "http://example.com"}
+
+      iex> WebInspector.sanitize_url("ukw.fm")
+      {:ok, "https://ukw.fm"}
+
+      iex> WebInspector.sanitize_url("https:///ukw.fm")
+      {:ok, "https://ukw.fm"}
+  """
+  def sanitize_url(url) do
+    parsed_url = url |> String.replace(":///", "://") |> URI.parse()
+
+    parsed_url =
+      if is_nil(parsed_url.scheme) && is_nil(parsed_url.host) && !is_nil(parsed_url.path) do
+        %URI{
+          host: parsed_url.path,
+          authority: parsed_url.path,
+          scheme: "https",
+          port: 443
+        }
+      else
+        parsed_url
+      end
+
+    {:ok, to_string(parsed_url)}
   end
 end
