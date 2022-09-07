@@ -14,7 +14,7 @@ defmodule WebInspector.Parser.Misc do
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-32x32.jpg" sizes="32x32" />
     ...>  <link rel="icon" href="https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg" />
     ...> ), "https://example.com")
-    %{
+    {:misc, %{
       "title" => "Foo",
       "canonical_url" => "https://example.com",
       "icons" =>
@@ -30,18 +30,18 @@ defmodule WebInspector.Parser.Misc do
             url: "https://freakshow.fm/files/2013/07/cropped-freakshow-logo-600x600-16x16.jpg"
           }
         ]
-    }
+    }}
   """
-  @spec parse(binary(), binary()) :: map()
+  @spec parse(binary(), binary()) :: {:misc, map()}
   def parse(html, site_url) when is_binary(html) do
     Floki.parse_document(html)
     |> case do
       {:ok, document} ->
-        _parse(document, site_url)
+        prepare_return(_parse(document, site_url))
 
       other ->
         Logger.debug(other)
-        %{}
+        prepare_return(%{})
     end
   end
 
@@ -115,5 +115,9 @@ defmodule WebInspector.Parser.Misc do
         _ -> false
       end
     end)
+  end
+
+  defp prepare_return(value) do
+    {:misc, value}
   end
 end

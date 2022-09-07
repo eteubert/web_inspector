@@ -11,21 +11,21 @@ defmodule WebInspector.Parser.OpenGraph do
     ...>  <meta property="og:site_name" content="Freak Show" />
     ...>  <meta property="og:site_name" content="Freak Show 2" />
     ...> ), "https://example.com")
-    %{
+    {:open_graph, %{
       "type" => "website",
       "site_name" => "Freak Show"
-    }
+    }}
   """
-  @spec parse(binary(), binary()) :: map()
+  @spec parse(binary(), binary()) :: {:open_graph, map()}
   def parse(html, _url) when is_binary(html) do
     Floki.parse_document(html)
     |> case do
       {:ok, document} ->
-        _parse(document)
+        prepare_return(_parse(document))
 
       other ->
         Logger.debug(other)
-        %{}
+        prepare_return(%{})
     end
   end
 
@@ -61,5 +61,9 @@ defmodule WebInspector.Parser.OpenGraph do
         _ -> false
       end
     end)
+  end
+
+  defp prepare_return(value) do
+    {:open_graph, value}
   end
 end

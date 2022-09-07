@@ -25,7 +25,7 @@ defmodule OEmbedTest do
 
     icon = ~s(<link rel="alternate" type="application/json+oembed" href="#{url}">)
 
-    result = WebInspector.Parser.OEmbed.parse(icon, @url)
+    {:oembed, result} = WebInspector.Parser.OEmbed.parse(icon, @url)
 
     assert is_map(result)
     assert Map.get(result, "author_name") == "Eric Teubert"

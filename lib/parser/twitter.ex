@@ -10,12 +10,12 @@ defmodule WebInspector.Parser.Twitter do
     ...>  <meta name="twitter:card" content="summary" />
     ...>  <meta name="twitter:url" content="https://freakshow.fm/fs229-telefonischturm" />
     ...> ), "https://example.com")
-    %{
+    {:twitter, %{
       "card" => "summary",
       "url" => "https://freakshow.fm/fs229-telefonischturm"
-    }
+    }}
   """
-  @spec parse(binary(), binary()) :: map()
+  @spec parse(binary(), binary()) :: {:twitter, map()}
   def parse(html, _url) when is_binary(html) do
     Floki.parse_document(html)
     |> case do
@@ -24,10 +24,11 @@ defmodule WebInspector.Parser.Twitter do
         |> List.wrap()
         |> filter()
         |> aggregate()
+        |> prepare_return()
 
       other ->
         Logger.debug(other)
-        %{}
+        prepare_return(%{})
     end
   end
 
@@ -54,5 +55,9 @@ defmodule WebInspector.Parser.Twitter do
         _ -> false
       end
     end)
+  end
+
+  defp prepare_return(value) do
+    {:twitter, value}
   end
 end

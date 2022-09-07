@@ -64,6 +64,9 @@ defmodule WebInspector do
       {:ok, %HTTPoison.Response{status_code: 429}} ->
         {:error, :http_429_too_many_requests}
 
+      {:ok, %HTTPoison.Response{status_code: 502}} ->
+        {:error, :http_bad_gateway}
+
       {:error, %HTTPoison.Error{reason: {:tls_alert, tls_alert}}} ->
         Logger.error(inspect(tls_alert))
         {:error, :tls_alert}
@@ -122,41 +125,31 @@ defmodule WebInspector do
       Task.async(OEmbed, :parse, [html, url])
     ]
 
-    # todo: after timeout, collect completed values; shutdown and discard others
-    with [puppeteer, open_graph, twitter, misc, oembed] <- Task.yield_many(tasks, 30_000),
-         {_, {:ok, puppeteer}} <- puppeteer,
-         {_, {:ok, open_graph}} <- open_graph,
-         {_, {:ok, twitter}} <- twitter,
-         {_, {:ok, misc}} <- misc,
-         {_, {:ok, oembed}} <- oembed do
-      result =
-        %{providers: %{}}
-        |> put_in([:providers, :open_graph], open_graph)
-        |> put_in([:providers, :twitter], twitter)
-        |> put_in([:providers, :misc], misc)
-        |> put_in([:providers, :oembed], oembed)
-        |> put_in([:providers, :puppeteer], puppeteer)
-        |> generate_porcelain(url, opts)
+    tasks_with_results = Task.yield_many(tasks, 3_000)
 
-      {:ok, result}
-    else
-      _ -> {:error, :parsing_failed}
-    end
+    task_results =
+      Enum.map(tasks_with_results, fn {task, res} ->
+        # Shut down the tasks that did not reply nor exit
+        res || Task.shutdown(task, :brutal_kill)
+      end)
+
+    # only take the completed tasks, ignore the others
+    result =
+      Enum.reduce(task_results, %{providers: %{}}, fn
+        {:ok, {provider_name, value}}, acc -> put_in(acc, [:providers, provider_name], value)
+        _, acc -> acc
+      end)
+
+    {:ok, generate_porcelain(result, url, opts)}
   end
 
-  defp generate_porcelain(
-         data = %{
-           providers: %{
-             open_graph: open_graph,
-             twitter: twitter,
-             misc: misc,
-             oembed: oembed,
-             puppeteer: puppeteer
-           }
-         },
-         url,
-         opts
-       ) do
+  defp generate_porcelain(data, url, opts) do
+    open_graph = get_in(data, [:providers, :open_graph]) || %{}
+    twitter = get_in(data, [:providers, :twitter]) || %{}
+    misc = get_in(data, [:providers, :misc]) || %{}
+    oembed = get_in(data, [:providers, :oembed]) || %{}
+    puppeteer = get_in(data, [:providers, :puppeteer]) || %{}
+
     canonical_url =
       Map.get(puppeteer, "url") || Map.get(misc, "canonical_url") || Map.get(oembed, "url") ||
         Map.get(open_graph, "url") ||

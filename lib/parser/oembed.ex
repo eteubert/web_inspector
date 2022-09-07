@@ -7,16 +7,16 @@ defmodule WebInspector.Parser.OEmbed do
   Finds all "application/json+oembed" links, fetches them all and returns
   the first valid result.
   """
-  @spec parse(binary(), binary()) :: map()
+  @spec parse(binary(), binary()) :: {:oembed, map()}
   def parse(html, _url) when is_binary(html) do
     Floki.parse_document(html)
     |> case do
       {:ok, document} ->
-        _parse(document)
+        prepare_return(_parse(document))
 
       other ->
         Logger.debug(other)
-        %{}
+        prepare_return(%{})
     end
   end
 
@@ -58,5 +58,9 @@ defmodule WebInspector.Parser.OEmbed do
       _ ->
         {:error, :invalid_response}
     end
+  end
+
+  defp prepare_return(value) do
+    {:oembed, value}
   end
 end

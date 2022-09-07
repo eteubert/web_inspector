@@ -3,16 +3,16 @@ defmodule WebInspector.Parser.Puppeteer do
 
   def fetch_and_parse(url) when is_binary(url) do
     if Application.get_env(:web_inspector, :puppeteer_enabled) do
-      do_fetch_and_parse(url)
+      prepare_return(do_fetch_and_parse(url))
     else
-      %{}
+      prepare_return(%{})
     end
   end
 
   def fetch_screenshot(url) do
     headers = []
 
-    options = [recv_timeout: 30_000]
+    options = [recv_timeout: 15_000]
 
     host = Application.get_env(:web_inspector, :puppeteer_host)
     request_url = host <> "/screenshot/?" <> URI.encode_query(%{"url" => url})
@@ -50,5 +50,9 @@ defmodule WebInspector.Parser.Puppeteer do
       _ ->
         %{}
     end
+  end
+
+  defp prepare_return(value) do
+    {:puppeteer, value}
   end
 end
