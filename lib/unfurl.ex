@@ -80,6 +80,10 @@ defmodule WebInspector do
     end
   end
 
+  def unfurl(_url, _visited_locations) do
+    {:error, :too_many_redirects}
+  end
+
   # determine next url to request based on location header
   # - follow location header if it is a fully qualified URL
   # - if location header is relative, build fully qualified URL
