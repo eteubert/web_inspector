@@ -13,8 +13,11 @@ defmodule WebInspector do
 
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
-    with {:ok, sanitized_url} <- sanitize_url(url) do
+    with {:ok, sanitized_url} <- sanitize_url(url),
+         true <- String.length(sanitized_url) > 0 do
       unfurl(sanitized_url, [])
+    else
+      _ -> {:error, :invalid_url}
     end
   end
 
