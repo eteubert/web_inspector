@@ -30,53 +30,62 @@ defmodule WebInspector do
       ssl: [{:versions, [:"tlsv1.2"]}]
     ]
 
-    case HTTPoison.get(url, headers, options) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: html, headers: headers}} ->
-        compression = find_header(headers, "content-encoding")
-        # contentType = find_header(headers, "content-type")
-        # Logger.debug("contentType: " <> contentType)
-        html = decompress_body(compression, html)
-        parse(url, html, %{locations: Enum.reverse([url | visited_locations])})
+    try do
+      case HTTPoison.get(url, headers, options) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: html, headers: headers}} ->
+          compression = find_header(headers, "content-encoding")
+          # contentType = find_header(headers, "content-type")
+          # Logger.debug("contentType: " <> contentType)
+          html = decompress_body(compression, html)
+          parse(url, html, %{locations: Enum.reverse([url | visited_locations])})
 
-      # HTTP 301 Moved Permanently
-      {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
-        unfurl(next_url(url, headers), [url | visited_locations])
+        # HTTP 301 Moved Permanently
+        {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
+          unfurl(next_url(url, headers), [url | visited_locations])
 
-      # HTTP 302 Found
-      {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-        unfurl(next_url(url, headers), [url | visited_locations])
+        # HTTP 302 Found
+        {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
+          unfurl(next_url(url, headers), [url | visited_locations])
 
-      # HTTP 303 See Other
-      {:ok, %HTTPoison.Response{status_code: 303, headers: headers}} ->
-        unfurl(next_url(url, headers), [url | visited_locations])
+        # HTTP 303 See Other
+        {:ok, %HTTPoison.Response{status_code: 303, headers: headers}} ->
+          unfurl(next_url(url, headers), [url | visited_locations])
 
-      # HTTP 307 Temporary Redirect
-      {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
-        unfurl(next_url(url, headers), [url | visited_locations])
+        # HTTP 307 Temporary Redirect
+        {:ok, %HTTPoison.Response{status_code: 307, headers: headers}} ->
+          unfurl(next_url(url, headers), [url | visited_locations])
 
-      {:ok, %HTTPoison.Response{status_code: 403, body: body}} ->
-        if String.contains?(body, "cf-captcha-container") do
-          {:error, :forbidden_cloudflare_captcha}
-        else
-          {:error, :forbidden}
-        end
+        {:ok, %HTTPoison.Response{status_code: 403, body: body}} ->
+          if String.contains?(body, "cf-captcha-container") do
+            {:error, :forbidden_cloudflare_captcha}
+          else
+            {:error, :forbidden}
+          end
 
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        {:error, :not_found}
+        {:error, %HTTPoison.Error{reason: :nxdomain}} ->
+          {:error, :nxdomain}
 
-      {:ok, %HTTPoison.Response{status_code: 429}} ->
-        {:error, :http_429_too_many_requests}
+        {:ok, %HTTPoison.Response{status_code: 404}} ->
+          {:error, :not_found}
 
-      {:ok, %HTTPoison.Response{status_code: 502}} ->
-        {:error, :http_bad_gateway}
+        {:ok, %HTTPoison.Response{status_code: 429}} ->
+          {:error, :http_429_too_many_requests}
 
-      {:error, %HTTPoison.Error{reason: {:tls_alert, tls_alert}}} ->
-        Logger.error(inspect(tls_alert))
-        {:error, :tls_alert}
+        {:ok, %HTTPoison.Response{status_code: 502}} ->
+          {:error, :http_bad_gateway}
 
-      other ->
-        Logger.error(inspect(other))
-        {:error, :unhandled_url_response}
+        {:error, %HTTPoison.Error{reason: {:tls_alert, tls_alert}}} ->
+          Logger.error(inspect(tls_alert))
+          {:error, :tls_alert}
+
+        other ->
+          Logger.error(inspect(other))
+          {:error, :unhandled_url_response}
+      end
+    catch
+      :exit, thrown_value ->
+        Logger.error("HTTPoison: exit thrown: #{inspect(thrown_value)}")
+        {:error, :http_client_exception}
     end
   end
 
@@ -248,7 +257,7 @@ defmodule WebInspector do
       {:ok, "https://ukw.fm"}
   """
   def sanitize_url(url) do
-    parsed_url = url |> String.replace(":///", "://") |> URI.parse()
+    parsed_url = url |> String.trim() |> String.replace(":///", "://") |> URI.parse()
 
     parsed_url =
       if is_nil(parsed_url.scheme) && is_nil(parsed_url.host) && !is_nil(parsed_url.path) do
@@ -262,6 +271,12 @@ defmodule WebInspector do
         parsed_url
       end
 
-    {:ok, to_string(parsed_url)}
+    result = to_string(parsed_url)
+
+    if result == "https://" do
+      {:error, :invalid_url}
+    else
+      {:ok, result}
+    end
   end
 end
