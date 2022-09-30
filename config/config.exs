@@ -11,7 +11,7 @@ import Config
 config :web_inspector, puppeteer_enabled: true
 config :web_inspector, puppeteer_host: "localhost:5000"
 
-config :web_inspector, :scrapingant,
+config :web_inspector, WebInspector.Adapter.ScrapingAnt,
   enabled: false,
   api_key: nil,
   proxy_country: nil
