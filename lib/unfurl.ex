@@ -21,32 +21,7 @@ defmodule WebInspector do
     end
   end
 
-  def maybe_use_scrapingant(url, headers) do
-    config = Application.get_env(:web_inspector, :scrapingant)
-
-    if config[:enabled] do
-      use_scrapingant(url, headers, config)
-    else
-      {url, headers}
-    end
-  end
-
-  # TODO: extract scrapingant logic into module
-  # rename config to config :web_inspector, ScrapingAnt, ...
-  @scrapingant_base_uri URI.parse("https://api.scrapingant.com/v1/general")
-
-  def use_scrapingant(url, headers, config) do
-    url =
-      @scrapingant_base_uri
-      |> URI.append_query("url=" <> URI.encode_www_form(url))
-      |> URI.append_query("proxy_country=" <> config[:proxy_country])
-      |> URI.append_query("browser=false")
-      |> URI.to_string()
-
-    headers = [{"x-api-key", config[:api_key]} | headers]
-
-    {url, headers}
-  end
+  @http_adapter WebInspector.Adapter.ScrapingAnt
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
     headers = [
@@ -58,12 +33,8 @@ defmodule WebInspector do
       recv_timeout: 15_000
     ]
 
-    {url, headers} = maybe_use_scrapingant(url, headers)
-
-    Logger.debug(url)
-
     try do
-      case HTTPoison.get(url, headers, options) do
+      case apply(@http_adapter, :call, [url, headers, options]) do
         {:ok, %HTTPoison.Response{status_code: 200, body: html, headers: headers}} ->
           compression = find_header(headers, "content-encoding")
           # contentType = find_header(headers, "content-type")
