@@ -29,7 +29,7 @@ defmodule WebInspector do
     ]
 
     options = [
-      ssl: [{:versions, [:"tlsv1.2"]}],
+      # ssl: [{:versions, [:"tlsv1.2"]}],
       recv_timeout: 15_000
     ]
 
