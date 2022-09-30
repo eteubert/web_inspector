@@ -59,3 +59,15 @@ WebInspector.unfurl("https://podlove.org")
    url: "https://podlove.org"
  }}
 ```
+
+## Scraping Ant
+
+Instead of plain HTTP requests, there is a [Scraping Ant](https://scrapingant.com/) adapter for more reliable results in case you run into bot detection issues. You need to put the API key into the environment variable `SCRAPINGANT_API_KEY`.
+
+For example, create a `.env` file with the content:
+
+```
+SCRAPINGANT_API_KEY=abcde...789
+```
+
+It will be loaded automatically. Or use your own way of setting environment variables.
