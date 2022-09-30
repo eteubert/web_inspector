@@ -21,14 +21,46 @@ defmodule WebInspector do
     end
   end
 
+  def maybe_use_scrapingant(url, headers) do
+    config = Application.get_env(:web_inspector, :scrapingant)
+
+    if config[:enabled] do
+      use_scrapingant(url, headers, config)
+    else
+      {url, headers}
+    end
+  end
+
+  # TODO: extract scrapingant logic into module
+  # rename config to config :web_inspector, ScrapingAnt, ...
+  @scrapingant_base_uri URI.parse("https://api.scrapingant.com/v1/general")
+
+  def use_scrapingant(url, headers, config) do
+    url =
+      @scrapingant_base_uri
+      |> URI.append_query("url=" <> URI.encode_www_form(url))
+      |> URI.append_query("proxy_country=" <> config[:proxy_country])
+      |> URI.append_query("browser=false")
+      |> URI.to_string()
+
+    headers = [{"x-api-key", config[:api_key]} | headers]
+
+    {url, headers}
+  end
+
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
     headers = [
       {"User-agent", @user_agent}
     ]
 
     options = [
-      ssl: [{:versions, [:"tlsv1.2"]}]
+      ssl: [{:versions, [:"tlsv1.2"]}],
+      recv_timeout: 15_000
     ]
+
+    {url, headers} = maybe_use_scrapingant(url, headers)
+
+    Logger.debug(url)
 
     try do
       case HTTPoison.get(url, headers, options) do
@@ -61,6 +93,9 @@ defmodule WebInspector do
           else
             {:error, :forbidden}
           end
+
+        {:ok, %HTTPoison.Response{status_code: 423}} ->
+          {:error, :scrapingant_blocked_by_bot_detection}
 
         {:error, %HTTPoison.Error{reason: :nxdomain}} ->
           {:error, :nxdomain}
@@ -141,7 +176,7 @@ defmodule WebInspector do
       Task.async(OEmbed, :parse, [html, url])
     ]
 
-    tasks_with_results = Task.yield_many(tasks, 3_000)
+    tasks_with_results = Task.yield_many(tasks, 60_000)
 
     task_results =
       Enum.map(tasks_with_results, fn {task, res} ->

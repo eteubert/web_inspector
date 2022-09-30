@@ -1,3 +1,3 @@
-use Mix.Config
+import Config
 
 config :web_inspector, puppeteer_enabled: false

@@ -1,6 +1,6 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
-use Mix.Config
+import Config
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -10,6 +10,11 @@ use Mix.Config
 
 config :web_inspector, puppeteer_enabled: true
 config :web_inspector, puppeteer_host: "localhost:5000"
+
+config :web_inspector, :scrapingant,
+  enabled: false,
+  api_key: nil,
+  proxy_country: nil
 
 # You can configure your application as:
 #
@@ -30,4 +35,4 @@ config :web_inspector, puppeteer_host: "localhost:5000"
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-import_config "#{Mix.env()}.exs"
+import_config "#{config_env()}.exs"
