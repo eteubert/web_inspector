@@ -60,7 +60,32 @@ WebInspector.unfurl("https://podlove.org")
  }}
 ```
 
-## Scraping Ant
+## Config
+
+### Puppeteer
+
+You can setup your own Puppeteer server if you need full control over the page visit and extracted data. It should return data in the following format:
+
+```js
+{
+    site_name,
+    title,
+    description,
+    image,
+    url
+}
+```
+
+The other extractors still run, but data extracted from the Puppeteer takes precedence.
+
+Enable Puppeteer and define its hostname in the config:
+
+```elixir
+config :web_inspector, puppeteer_enabled: true
+config :web_inspector, puppeteer_host: "localhost:5000"
+```
+
+### Scraping Ant
 
 Instead of plain HTTP requests, there is a [Scraping Ant](https://scrapingant.com/) adapter for more reliable results in case you run into bot detection issues. You need to put the API key into the environment variable `SCRAPINGANT_API_KEY`.
 
