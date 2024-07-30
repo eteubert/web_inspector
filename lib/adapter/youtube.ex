@@ -37,14 +37,15 @@ defmodule WebInspector.Adapter.Youtube do
     {:ok, response} = HTTPoison.get(yt_api_url, [{"User-agent", @user_agent}], [])
     {:ok, %{"items" => [%{"snippet" => video}]}} = response.body |> Jason.decode()
 
-    %{
-      title: video["title"],
-      url: "https://www.youtube.com/watch?v=" <> video_id,
-      description: video["description"],
-      site_name: "YouTube",
-      image: video["thumbnails"]["standard"],
-      site_url: "https://www.youtube.com",
-      icon: "https://www.youtube.com/s/desktop/103479f3/img/favicon_144x144.png"
-    }
+    {:ok,
+     %{
+       title: video["title"],
+       url: "https://www.youtube.com/watch?v=" <> video_id,
+       description: video["description"],
+       site_name: "YouTube",
+       image: video["thumbnails"]["standard"],
+       site_url: "https://www.youtube.com",
+       icon: "https://www.youtube.com/s/desktop/103479f3/img/favicon_144x144.png"
+     }}
   end
 end
