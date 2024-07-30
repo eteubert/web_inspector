@@ -43,7 +43,7 @@ defmodule WebInspector.Adapter.Youtube do
        url: "https://www.youtube.com/watch?v=" <> video_id,
        description: video["description"],
        site_name: "YouTube",
-       image: video["thumbnails"]["standard"],
+       image: video["thumbnails"]["standard"]["url"],
        site_url: "https://www.youtube.com",
        icon: %{url: "https://www.youtube.com/s/desktop/103479f3/img/favicon_144x144.png"}
      }}
