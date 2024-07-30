@@ -11,17 +11,38 @@ defmodule WebInspector do
   alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter, Puppeteer}
   alias WebInspector.WebHelper
 
+  @http_adapter WebInspector.Adapter.ScrapingAnt
+
   @spec unfurl(binary()) :: {:ok, map()} | {:error, atom()}
   def unfurl(url) do
     with {:ok, sanitized_url} <- sanitize_url(url),
-         true <- String.length(sanitized_url) > 0 do
-      unfurl(sanitized_url, [])
+         true <- String.length(sanitized_url) > 0,
+         adapter <- pick_crawler(url) do
+      case adapter do
+        :web -> unfurl(sanitized_url, [])
+        :youtube -> WebInspector.Adapter.Youtube.unfurl(sanitized_url)
+      end
     else
       _ -> {:error, :invalid_url}
     end
   end
 
-  @http_adapter WebInspector.Adapter.ScrapingAnt
+  def pick_crawler(url) do
+    uri = URI.parse(url)
+    normalized_host = String.trim_leading(uri.host, "www.")
+
+    case normalized_host do
+      "youtube.com" ->
+        if WebInspector.Adapter.Youtube.enabled?() do
+          :youtube
+        else
+          :web
+        end
+
+      _ ->
+        :web
+    end
+  end
 
   def unfurl(url, visited_locations) when length(visited_locations) < 10 do
     headers = [
@@ -29,7 +50,6 @@ defmodule WebInspector do
     ]
 
     options = [
-      # ssl: [{:versions, [:"tlsv1.2"]}],
       recv_timeout: 15_000
     ]
 

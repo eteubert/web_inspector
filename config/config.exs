@@ -16,6 +16,10 @@ config :web_inspector, WebInspector.Adapter.ScrapingAnt,
   api_key: nil,
   proxy_country: nil
 
+config :web_inspector, WebInspector.Adapter.Youtube,
+  enabled: false,
+  api_key: nil
+
 # You can configure your application as:
 #
 #     config :web_inspector, key: :value
