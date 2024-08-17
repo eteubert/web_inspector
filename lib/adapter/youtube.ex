@@ -16,16 +16,25 @@ defmodule WebInspector.Adapter.Youtube do
     end
   end
 
+  @doc """
+  Is this adapter enabled?
+  """
   def enabled? do
     Application.get_env(:web_inspector, __MODULE__)[:enabled]
   end
 
+  @doc """
+  Does this adapter apply to the given URL?
+  """
+  def applies?(url) do
+    uri = URI.parse(url)
+    host = String.trim_leading(uri.host, "www.")
+
+    host == "youtube.com" && video_id_from_url(url) != nil
+  end
+
   defp call_api(url, config) do
-    video_id =
-      URI.parse(url)
-      |> Map.get(:query)
-      |> URI.decode_query()
-      |> Map.get("v")
+    video_id = video_id_from_url(url)
 
     yt_api_url =
       @api_base_uri
@@ -47,5 +56,17 @@ defmodule WebInspector.Adapter.Youtube do
        site_url: "https://www.youtube.com",
        icon: %{url: "https://www.youtube.com/s/desktop/103479f3/img/favicon_144x144.png"}
      }}
+  end
+
+  defp video_id_from_url(url) do
+    case URI.parse(url) |> Map.get(:query) do
+      nil ->
+        nil
+
+      query ->
+        query
+        |> URI.decode_query()
+        |> Map.get("v")
+    end
   end
 end

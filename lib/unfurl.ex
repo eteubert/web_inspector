@@ -8,6 +8,7 @@ defmodule WebInspector do
 
   require Logger
 
+  alias WebInspector.Adapter.Youtube
   alias WebInspector.Parser.{Misc, OEmbed, OpenGraph, Twitter, Puppeteer}
   alias WebInspector.WebHelper
 
@@ -20,20 +21,23 @@ defmodule WebInspector do
          adapter <- pick_crawler(url) do
       case adapter do
         :web -> unfurl(sanitized_url, [])
-        :youtube -> WebInspector.Adapter.Youtube.unfurl(sanitized_url)
+        :youtube -> Youtube.unfurl(sanitized_url)
       end
     else
       _ -> {:error, :invalid_url}
     end
   end
 
+  # TODO: as soon as there is one more crawler/adapter: make a behavior so that
+  # they all implement enabled? and applies?. Then I can reduce over a list of
+  # all adapters until I find a matching one.
   def pick_crawler(url) do
     uri = URI.parse(url)
     normalized_host = String.trim_leading(uri.host, "www.")
 
     case normalized_host do
       "youtube.com" ->
-        if WebInspector.Adapter.Youtube.enabled?() do
+        if Youtube.enabled?() && Youtube.applies?(url) do
           :youtube
         else
           :web
