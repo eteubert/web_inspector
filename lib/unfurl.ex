@@ -33,7 +33,12 @@ defmodule WebInspector do
   # all adapters until I find a matching one.
   def pick_crawler(url) do
     uri = URI.parse(url)
-    normalized_host = String.trim_leading(uri.host, "www.")
+
+    normalized_host =
+      case uri.host do
+        nil -> ""
+        host -> String.trim_leading(host, "www.")
+      end
 
     case normalized_host do
       "youtube.com" ->

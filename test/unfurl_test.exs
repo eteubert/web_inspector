@@ -2,7 +2,7 @@ defmodule WebInspectorTest do
   use ExUnit.Case
   doctest WebInspector
 
-  import WebInspector, only: [unfurl: 1]
+  import WebInspector, only: [unfurl: 1, pick_crawler: 1]
 
   setup do
     bypass = Bypass.open()
@@ -95,5 +95,23 @@ defmodule WebInspectorTest do
 
     assert result.site_name == "Nomad List"
     assert result.url == "https://nomadlist.com/"
+  end
+
+  describe "pick_crawler/1" do
+    test "picks :web for nonspecial urls" do
+      assert pick_crawler("https://podlovers.org/") == :web
+    end
+
+    test "picks :youtube for video urls" do
+      assert pick_crawler("https://www.youtube.com/watch?v=sKgi0h8heFU") == :youtube
+    end
+
+    test "picks :web for non-video YouTube urls" do
+      assert pick_crawler("https://www.youtube.com/@projectpodlove") == :web
+    end
+
+    test "picks :web for invalid urls" do
+      assert pick_crawler("nonsense") == :web
+    end
   end
 end
