@@ -23,7 +23,7 @@ defmodule WebInspector.MixProject do
     [
       {:httpoison, "~> 2.2"},
       {:jason, "~> 1.4"},
-      {:floki, "~> 0.36.2"},
+      {:floki, "~> 0.30.1"},
       {:bypass, "~> 2.1", only: :test},
       {:dotenvy, "~> 0.8.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
