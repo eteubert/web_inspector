@@ -1,7 +1,6 @@
 import Config
-import Dotenvy
 
-Dotenvy.source([".env", System.get_env()])
+Dotenvy.source!([".env", System.get_env()])
 
 config :web_inspector, WebInspector.Adapter.ScrapingAnt,
   enabled: Dotenvy.env!("SCRAPINGANT_ENABLED", :string, false),

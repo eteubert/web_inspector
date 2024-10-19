@@ -5,7 +5,7 @@ defmodule WebInspector.MixProject do
     [
       app: :web_inspector,
       version: "1.0.0",
-      elixir: "~> 1.15.7",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -21,8 +21,8 @@ defmodule WebInspector.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 2.2.1"},
-      {:jason, "~> 1.4.4"},
+      {:httpoison, "~> 2.2"},
+      {:jason, "~> 1.4"},
       {:floki, "~> 0.36.2"},
       {:bypass, "~> 2.1", only: :test},
       {:dotenvy, "~> 0.8.0"}
