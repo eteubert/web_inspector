@@ -5,7 +5,7 @@ defmodule WebInspector.MixProject do
     [
       app: :web_inspector,
       version: "1.0.0",
-      elixir: "~> 1.15.7",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
