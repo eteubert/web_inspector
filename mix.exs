@@ -21,9 +21,9 @@ defmodule WebInspector.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 2.2.1"},
-      {:jason, "~> 1.4.4"},
-      {:floki, "~> 0.36.2"},
+      {:httpoison, "~> 2.2"},
+      {:jason, "~> 1.4"},
+      {:floki, "~> 0.30.1"},
       {:bypass, "~> 2.1", only: :test},
       {:dotenvy, "~> 0.8.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},

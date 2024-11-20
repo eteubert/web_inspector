@@ -27,3 +27,5 @@ unfurl-*.tar
 .DS_Store
 
 .env
+
+.lexical
